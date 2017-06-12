@@ -30,6 +30,32 @@ function fallingStripe(t,x,y,data,offset,arg) {
 The opacity of each pixel is set to fully transparent before calling the effect. If the effect should not modify a pixel for a particular t/x/y combination, it can simply return.
 
 
+## Bounding Box
+
+Because an effect can touch every pixel, but often do not, performance limitations dictate that we need to know which pixels to affect with an effect. Thus, each effect function needs to be paired with another function that is fed the time and a bounding box and sets the four corners of the boundary it will play within.
+
+We do this by adding a custom `bbox` property to the effect function. This function will receive a time value and an object which must have its `x0`/`y0` (minimum) and `x1`/`y1` (maximum) properties set. For example:
+
+```js
+function fallingStripe(t,x,y,data,offset) {
+	if (x>=1 || x<0) return;
+	var limit = Math.round(t/10);
+	if (y<=limit) {
+		data[offset+0] = 255;
+		data[offset+1] = 255;
+		data[offset+2] = 255;
+		data[offset+3] = 255 - (limit-y)*10;
+	}
+}
+fallingStripe.bbox = function(t,bbox) {
+	var limit = Math.round(t/10);
+	bbox.x0 = 0;
+	bbox.x1 = 1;
+	bbox.y0 = limit-25;
+	bbox.y1 = limit+1;
+}
+```
+
 # Events
 
 Events are instances of an effect that are triggered at a particular time. The only thing an event *must* specify is the index of the effect to use.
@@ -52,3 +78,8 @@ Events may optionally also specify:
 * `speed`: A multiplier applied to the time value supplied to the effect.
 * `arg`: An arbitrary value to pass to the effect as the sixth parameter.
 * `repeat`: Number of times to repeat the animation, resetting the time. _(Not currently supported.)_
+
+
+# Known Limitations (aka TODO)
+
+* Tests (made with Engineering Art) show that many effects pre-compute some variables that are based solely on the time value. The same code is run, with the same result, for every pixel at a given time value. It would be nice to allow effects to run this compute during the `bbox` function and then return some data that will be passed along to the effect each time it is called.

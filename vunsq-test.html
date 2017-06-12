@@ -12,6 +12,7 @@
 </head><body>
 <canvas width="24" height="240"></canvas>
 <div></div>
+<canvas width="96" height="960"></canvas>
 <span id="fps"></span>
 <script src="vunsq.js"></script>
 <script>
@@ -25,8 +26,11 @@ vid.add({ effect:1, speed:0.15, x:10, y:50, rotate:-90, blend:'screen' });
 vid.add({ effect:0, x:12, blend:'screen' });
 vid.add({ effect:0, x:10, start:100, speed:0.8, rotate:-5, scaleX:3, blend:'screen', arg:[0,255,200] });
 vid.add({ effect:0, y:10, speed:1.5, start:100, rotate:5, scale:2, blend:'screen', arg:[100,200,255] });
+vid.add({ effect:1, speed:4, y:200, rotate:-180, blend:'screen' });
+vid.add({ effect:1, speed:3, y:170, blend:'screen' });
+vid.add({ effect:0, x:18, speed:0.2, blend:'screen', arg:[255,255,100] });
 
-vid.go(document.querySelector('#fps'));
+// vid.debugCanvas = document.querySelectorAll('canvas')[1];
 
 function fallingStripe(t,x,y,data,offset,arg) {
 	if (x>=1 || x<0) return;
@@ -37,6 +41,13 @@ function fallingStripe(t,x,y,data,offset,arg) {
 		data[offset+2] = arg ? arg[2] : 255;
 		data[offset+3] = 255 - (limit-y)*10;
 	}
+}
+fallingStripe.bbox = function(t,bbox) {
+	var limit = Math.round(t/10) % 300;
+	bbox.x0 = 0;
+	bbox.x1 = 1;
+	bbox.y0 = limit-25;
+	bbox.y1 = limit+1;
 }
 
 function gadoosh(t,x,y,data,offset,arg) {
@@ -50,9 +61,17 @@ function gadoosh(t,x,y,data,offset,arg) {
 			(Math.sin(y/5)*Math.cos(x/5))*180+t/5,
 		  0.8+Math.pow((Math.sin(t%msPerBeat/msPerBeat*3.14)+1)/2,30),
 		  0.5,
-		  data, offset);	
+		  data, offset);
 	}
 }
+gadoosh.bbox = function(t,bbox) {
+	bbox.x0 = (t/30)%96-64;
+	bbox.x1 = bbox.x0+32;
+	bbox.y0 = -18;
+	bbox.y1 = 18;
+}
+
+vid.go(document.querySelector('#fps'));
 
 function hsv(h,s,v,data,offset) {
 	//***h (hue) should be a value from 0 to 360
