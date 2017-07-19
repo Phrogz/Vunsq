@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+// A Presentation is made up of multiple Acts
+// An Act is a timed and transformed display of content, where the content is either an Event or a Scene
+// An Event is an effect shown with a particular set of arguments
+// A Scene is a reusable grouping of Events
+
+message Presentation {
+	string           media    = 1; // URI to the song/video that goes along with the events
+	float            bpm      = 2; // Beats per minute for the media
+	repeated Act     acts     = 3; // Events to play in sync with the song/video
+	repeated Pattern patterns = 4; // Library of reusable patterns to reference in the scenes
+
+	message Act {
+		oneof scene_or_event {
+			Event event = 1;
+			Scene scene = 2;
+		}
+	}
+}
+
+message Transform {
+	float    start  = 1;  // Time to start showing the effect (ms from start; default:0)
+	float    length = 2;  // How long the display lasts before it ends/repeats, in ms (default: Infinity)
+	float    speed  = 3;  // Time-scaling to apply (0 interpreted as 1)
+	float    rotate = 4;  // 2D rotation to apply (degrees counter-clockwise)
+	XY       offset = 6;  // 2D offset to the right and down from the upper left
+	XY       scale  = 7;  // 2D scaling (0 interpreted as no-scale)
+	uint32   repeat = 8;  // Additional showings of the act (0 means play once only)
+	Matrix2D matrix = 16; // A 2×3 2D transformation matrix. Takes precedence over other transformation values.
+
+	message XY {
+		float x = 1;
+		float y = 2;
+	}
+
+	message Matrix2D {
+		float a = 1; // row 1 column 1
+		float b = 2; // row 2 column 1
+		float c = 3; // row 1 column 2
+		float d = 4; // row 2 column 2
+		float e = 5; // row 1 column 3
+		float f = 6; // row 2 column 3
+	}
+}
+
+
+message Scene {
+	Transform xform      = 1; // Timing of the event or scene
+	uint32    pattern_id = 2; // Pattern to display
+}
+
+message Pattern {
+	uint32         pattern_id = 1;
+	repeated Event events     = 2;
+}
+
+message Event {
+	uint32         effect_id = 1;  // ID of the effect to display (0 reserved for no effect)
+	Transform      xform     = 2;  //
+	repeated float args      = 3; // Custom arguments to pass to the effect
+	BlendMode      blend     = 4;  // How to composite this event over other events
+
+	// See https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
+	enum BlendMode {
+		SOURCE_OVER      = 0;
+		SOURCE_IN        = 1;
+		SOURCE_OUT       = 2;
+		SOURCE_ATOP      = 3;
+		DESTINATION_OVER = 4;
+		DESTINATION_IN   = 5;
+		DESTINATION_OUT  = 6;
+		DESTINATION_ATOP = 7;
+		LIGHTER          = 8;
+		COPY             = 9;
+		XOR              = 10;
+		MULTIPLY         = 11;
+		SCREEN           = 12;
+		OVERLAY          = 13;
+		DARKEN           = 14;
+		LIGHTEN          = 15;
+		COLOR_DODGE      = 16;
+		COLOR_BURN       = 17;
+		HARD_LIGHT       = 18;
+		SOFT_LIGHT       = 19;
+		DIFFERENCE       = 20;
+		EXCLUSION        = 21;
+		HUE              = 22;
+		SATURATION       = 23;
+		COLOR            = 24;
+		LUMINOSITY       = 25;
+	}
+}
