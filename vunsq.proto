@@ -1,8 +1,8 @@
 syntax = "proto3";
 
 // A Presentation is made up of multiple Acts
-// An Act is a timed and transformed display of content, where the content is either an Event or a Scene
-// An Event is an effect shown with a particular set of arguments
+// An Act is a display of content, where the content is either an Event or a Scene
+// An Event is an effect shown with a particular set of arguments and
 // A Scene is a reusable grouping of Events
 
 message Presentation {
@@ -23,25 +23,25 @@ message Transform {
 	float    start  = 1;  // Time to start showing the effect (ms from start; default:0)
 	float    length = 2;  // How long the display lasts before it ends/repeats, in ms (default: Infinity)
 	float    speed  = 3;  // Time-scaling to apply (0 interpreted as 1)
-	float    rotate = 4;  // 2D rotation to apply (degrees counter-clockwise)
+//	float    rotate = 4;  // 2D rotation to apply (degrees counter-clockwise)
 	XY       offset = 6;  // 2D offset to the right and down from the upper left
-	XY       scale  = 7;  // 2D scaling (0 interpreted as no-scale)
+//	XY       scale  = 7;  // 2D scaling (0 interpreted as no-scale)
 	uint32   repeat = 8;  // Additional showings of the act (0 means play once only)
-	Matrix2D matrix = 16; // A 2×3 2D transformation matrix. Takes precedence over other transformation values.
+//	Matrix2D matrix = 16; // A 2×3 2D transformation matrix. Takes precedence over other transformation values.
 
 	message XY {
 		float x = 1;
 		float y = 2;
 	}
 
-	message Matrix2D {
-		float a = 1; // row 1 column 1
-		float b = 2; // row 2 column 1
-		float c = 3; // row 1 column 2
-		float d = 4; // row 2 column 2
-		float e = 5; // row 1 column 3
-		float f = 6; // row 2 column 3
-	}
+//	message Matrix2D {
+//		float a = 1; // row 1 column 1
+//		float b = 2; // row 2 column 1
+//		float c = 3; // row 1 column 2
+//		float d = 4; // row 2 column 2
+//		float e = 5; // row 1 column 3
+//		float f = 6; // row 2 column 3
+//	}
 }
 
 

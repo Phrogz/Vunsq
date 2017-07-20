@@ -79,6 +79,85 @@ Events may optionally also specify:
 * `arg`: An arbitrary value to pass to the effect as the sixth parameter.
 * `repeat`: Number of times to repeat the effect, resetting the time. _(Not currently supported.)_
 
+# JSON Format Example
+
+~~~json
+{
+	"media" : "CHVRCHES-LeaveATrace.m4a",
+	"bpm"   : 100.32,
+	"patterns" : [
+		{"id":0, "events":[/*event*/, /*event*/, /*...*/] },
+		{"id":1, "events":[/*event*/, /*event*/, /*...*/] },
+	],
+	"instances" : [
+		{ "pattern":0, "start":0, "length":2366, "speed":2, "repeat":7, "x":3, "y":10 },
+		{ "event":0, "start":0, "length":592, "repeat":3, "blend":"screen", "args":[255,128,0] }
+	]
+}
+~~~
+
+# Binary Format
+
+## Presentation
+
+ bytes | field
+-------|-----------------------------------
+   4   | Presentation BPM
+   ~   | Media URI (null terminated UTF-8)
+   ~   | Pattern Library
+   4   | Effect/Pattern Instance Count
+   ~   | arg …
+
+
+## Pattern Library
+
+ bytes | field
+:-----:|-----------------------------------
+   1   | Pattern Count (max:128)
+   2   | Pattern 128 Event Count
+   ~   | Pattern 128 Event 1
+   ~   | Pattern 128 Event 2
+   ~   | Pattern 128 Event …
+   2   | Pattern 129 Event Count
+   ~   | Pattern 129 Event 1
+   ~   | Pattern 129 Event 2
+   ~   | Pattern 129 Event …
+   2   | Pattern … Event Count
+   ~   | Pattern … Event 1
+   ~   | Pattern … Event 2
+   ~   | Pattern … Event …
+
+
+## Event
+
+ bytes | field
+:-----:|-----------------------------------
+   1   | Effect# (0-127)
+   4   | Start   (int ms)
+   4   | Length  (int ms)
+   4   | Speed   (float)
+   2   | Repeat  (int)
+   1   | Xoffset (int)
+   1   | Yoffset (int)
+   1   | Blend Mode
+   1   | Arg Count
+   1   | Arg 1
+   1   | Arg 2
+   1   | Arg …
+
+
+## Pattern Instance
+
+ bytes | field
+:-----:|-----------------------------------
+   1   | Pattern# (128-255)
+   4   | Start   (int ms)
+   4   | Length  (int ms)
+   4   | Speed   (float)
+   2   | Repeat  (int)
+   1   | Xoffset (int)
+   1   | Yoffset (int)
+
 
 # Known Limitations (aka TODO)
 
