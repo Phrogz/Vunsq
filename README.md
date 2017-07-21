@@ -86,12 +86,18 @@ Events may optionally also specify:
 	"media" : "CHVRCHES-LeaveATrace.m4a",
 	"bpm"   : 100.32,
 	"patterns" : [
-		{"id":0, "events":[/*event*/, /*event*/, /*...*/] },
-		{"id":1, "events":[/*event*/, /*event*/, /*...*/] },
+		{"id":0, "events":[
+			{ "effect":0, "start":0, "length":592, "repeat":3, "blend":"screen", "args":[255,128,0] },
+			{ "effect":1, "length":592 }
+		] },
+		{"id":1, "events":[
+			{ "effect":0, "start":0, "length":592, "repeat":3, "blend":"screen", "args":[4.1342] },
+			{ "effect":0, "start":0, "length":592, "args":[256,65535,65536,16777215,16777216,4294967295] }
+		] },
 	],
 	"instances" : [
-		{ "pattern":0, "start":0, "length":2366, "speed":2, "repeat":7, "x":3, "y":10 },
-		{ "event":0, "start":0, "length":592, "repeat":3, "blend":"screen", "args":[255,128,0] }
+		{ "pattern":0, "start":0, "length":1000, "repeat":7, "x":3, "y":10 },
+		{ "effect":0, "start":16777216, "length":65536, "repeat":3, "blend":"source-over" }
 	]
 }
 ~~~
@@ -102,7 +108,7 @@ Events may optionally also specify:
 
  bytes | field
 -------|-----------------------------------
-   4   | Presentation BPM
+   4   | Presentation BPM (float)
    ~   | Media URI (null terminated UTF-8)
    ~   | Pattern Library
    4   | Effect/Pattern Instance Count
