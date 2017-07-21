@@ -104,6 +104,8 @@ Events may optionally also specify:
 
 # Binary Format
 
+All multi-byte numbers are stored in big-endian format.
+
 ## Presentation
 
  bytes | field
@@ -111,7 +113,7 @@ Events may optionally also specify:
    4   | Presentation BPM (float)
    ~   | Media URI (null terminated UTF-8)
    ~   | Pattern Library
-   4   | Effect/Pattern Instance Count
+   4   | Effect/Pattern Instance Count (uint32)
    ~   | arg …
 
 
@@ -119,16 +121,16 @@ Events may optionally also specify:
 
  bytes | field
 :-----:|-----------------------------------
-   1   | Pattern Count (max:128)
-   2   | Pattern 128 Event Count
+   1   | Pattern Count (uint8; max:128)
+   2   | Pattern 128 Event Count (uint16)
    ~   | Pattern 128 Event 1
    ~   | Pattern 128 Event 2
    ~   | Pattern 128 Event …
-   2   | Pattern 129 Event Count
+   2   | Pattern 129 Event Count (uint16)
    ~   | Pattern 129 Event 1
    ~   | Pattern 129 Event 2
    ~   | Pattern 129 Event …
-   2   | Pattern … Event Count
+   2   | Pattern … Event Count (uint16)
    ~   | Pattern … Event 1
    ~   | Pattern … Event 2
    ~   | Pattern … Event …
@@ -138,31 +140,31 @@ Events may optionally also specify:
 
  bytes | field
 :-----:|-----------------------------------
-   1   | Effect# (0-127)
-   4   | Start   (int ms)
-   4   | Length  (int ms)
-   4   | Speed   (float)
-   2   | Repeat  (int)
-   1   | Xoffset (int)
-   1   | Yoffset (int)
-   1   | Blend Mode
-   1   | Arg Count
-   1   | Arg 1
-   1   | Arg 2
-   1   | Arg …
+   1   | Effect#    (uint8; 128-255 only)
+   4   | Start      (uint32 ms)
+   4   | Length     (uint32 ms)
+   4   | Speed      (float)
+   2   | Repeat     (uint16)
+   1   | Xoffset    (uint8)
+   1   | Yoffset    (uint8)
+   1   | Blend Mode (uint8)
+   1   | Arg Count  (uint8)
+   1   | Arg 1      (uint8)
+   1   | Arg 2      (uint8)
+   1   | Arg …      (uint8)
 
 
 ## Pattern Instance
 
  bytes | field
 :-----:|-----------------------------------
-   1   | Pattern# (128-255)
-   4   | Start   (int ms)
-   4   | Length  (int ms)
-   4   | Speed   (float)
-   2   | Repeat  (int)
-   1   | Xoffset (int)
-   1   | Yoffset (int)
+   1   | Pattern# (uint8; 0-127 only)
+   4   | Start    (uint32 ms)
+   4   | Length   (uint32 ms)
+   4   | Speed    (float)
+   2   | Repeat   (uint16)
+   1   | Xoffset  (uint8)
+   1   | Yoffset  (uint8)
 
 
 # Known Limitations (aka TODO)
