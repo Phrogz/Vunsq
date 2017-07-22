@@ -10,7 +10,7 @@ def run!
 	require 'rationalist'
 	args = Rationalist.parse(ARGV, alias:{h:'help'})
 	if args[:help]
-		puts USAGE 
+		puts USAGE
 		exit
 	end
 
@@ -22,7 +22,7 @@ def run!
 
 	if ARGF.filename == '-'
 		print binary
-	else 
+	else
 		puts "Converted #{json.length}-byte JSON to #{binary.length}-byte binary '#{output}'"
 		File.open(output,'wb'){ |f| f.print(binary) }
 	end
@@ -46,7 +46,7 @@ def json2bin(json)
 	lib = patterns.map.with_index do |pattern,i|
 		pattern_index_by_id[pattern["id"]] = i
 		events = pattern["events"] || []
-		[events.length].pack('v') << events.map{ |e| event2bin(e) }.compact.join
+		[events.length].pack('n') << events.map{ |e| event2bin(e) }.compact.join
 	end.join
 
 	ins = instances.map do |pat_or_evt|
@@ -62,7 +62,7 @@ def json2bin(json)
 				pat_or_evt['repeat'] || 0,
 				pat_or_evt['x']      || 0,
 				pat_or_evt['y']      || 0
-			].pack('CN3nC2')
+			].pack('CN2gnC2')
 		else
 			event2bin(pat_or_evt)
 		end
@@ -96,7 +96,7 @@ def event2bin(event)
 		Vunsq::BLEND_MODES[ (event['blend']  || 'source-over').downcase ],
 		args.length,
 		*args
-	].pack('CN3nC*')
+	].pack('CN2gnC*')
 end
 
 module Vunsq
