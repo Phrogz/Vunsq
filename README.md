@@ -114,7 +114,9 @@ All multi-byte numbers are stored in big-endian format.
    ~   | Media URI (null terminated UTF-8)
    ~   | Pattern Library
    4   | Effect/Pattern Instance Count (uint32)
-   ~   | arg …
+   ~   | Effect/Pattern Instance 1
+   ~   | Effect/Pattern Instance 2
+   ~   | Effect/Pattern Instance …
 
 
 ## Pattern Library
