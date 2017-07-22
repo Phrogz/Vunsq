@@ -6,7 +6,29 @@ Like a mod-tracker, but:
 * For timing and blending 2D video instead of sound, and
 * Using generative, pixel-shading functions for the 'samples' instead of pre-recorded videos
 
-# Effects
+
+# Core Concepts and Terminology
+
+An **Effect** is like a pixel shader: it gets fed an x,y coordinate, a time, and optionally custom arguments, and it produces an RGBA value.
+For optimization, an Effect must also be able to return the bounding box of pixels it will touch given a time and optional arguments.
+You can have a maximum of 128 different Effects.
+
+An **Event** is an instance of an Effect. It specifies a 2D and time transform, custom arguments, blend mode to apply, and number of times to repeat.
+Events reference Effects by numeric identifier.
+
+A **Pattern** is a grouping of Events.
+You can have a maximum of 128 defined Patterns in a **Pattern Library**.
+
+A **Pattern Instance** is (surprise!) an instance of a pattern. Like an Event, it specifies a 2D and time transform to show the pattern, and number of times to repeat. (Blending is based on the Events in the Pattern.)
+
+A **Presentation** is the entire ‘movie'. It specifies a BPM it is associated with, and an ideal reference song to play with it.
+A Presentation has a Pattern Library and a grouping of all Events and Pattern Instances.
+Presentations can be played by the runtime along with a different song at a different BPM, speeding them up or slowing them down.
+
+_Note: Effects are code in the host runtime, and not stored within a Presentation._
+
+
+# Effects in JavaScript
 
 Effects are like pixel shaders: they are functions that are given a 2D position and a time value, and produce an RGBA value for a specific pixel. Note that the 2D position fed to the effect is only the same as the actual pixel location when there is no 2D transform applied.
 
@@ -56,7 +78,7 @@ fallingStripe.bbox = function(t,bbox) {
 }
 ```
 
-# Events
+# Events in JavaScript
 
 Events are instances of an effect that are triggered at a particular time. The only thing an event *must* specify is the index of the effect to use.
 
