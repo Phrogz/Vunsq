@@ -1,5 +1,7 @@
+#!/usr/bin/env node
+
 function Vunsq() {
-	
+
 }
 
 Vunsq.prototype.loadFile = function(vunsqFile) {
@@ -9,7 +11,7 @@ Vunsq.prototype.loadFile = function(vunsqFile) {
 Vunsq.prototype.load = function(buf) {
 	const me = this;
 	let offset=0;
-	this.bpm = readFloat();
+	this.bpm = readFloat('bpm');
 
 	offset=3;
 	while (buf[++offset]);
@@ -25,60 +27,59 @@ Vunsq.prototype.load = function(buf) {
 	return this;
 
 	function readPatterns() {
-		const patternCount = readChar();
+		const patternCount = readChar('pattern count');
 		assert(patternCount <= 128);
-		me.patterns = [];
-		for (let i=0; i<patternCount; ++i) {
-			const pattern = { id:i, events:[] }
-			const eventCount = readShort();
-			console.log('pattern',i,eventCount);
-			for (let j=0; j<eventCount; ++j) {
-				pattern.events.push(readEvent());
-			}
-			me.patterns.push(pattern);
-		}
+		me.patterns = Array.from({ length:patternCount }, (_,i) => ({
+			id: i,
+			events: Array.from({ length:readShort('pat #'+i+' evtCt') }, readEventOrPattern )
+		}) );
 	}
 
 	function readInstances() {
-
+		me.instances = Array.from({ length:readLong('instance count') }, readEventOrPattern);
 	}
 
-	function readEvent() {
-		return {
-			effect: readChar()-128,
-			start:  readLong(),
-			length: readLong(),
-			speed:  readFloat(),
-			repeat: readShort(),
-			x:      readChar(),
-			y:      readChar(),
-			blend:  readChar(),
-			args:   new Array(readChar()).map(readChar)
+	function readEventOrPattern() {
+		const id = readChar('id');
+		const obj = {
+			start:  readLong('start'),
+			length: readLong('length'),
+			speed:  readFloat('speed'),
+			repeat: readShort('repeat'),
+			x:      readChar('x'),
+			y:      readChar('y')
 		};
+		if (id<128) obj.pattern = id;
+		else {
+			obj.effect = id-128;
+			obj.blend  = readChar('blend');
+			obj.args   = Array.from({length:readChar('argCount')}, (_,i)=>readChar('arg #'+i) );
+		}
+		return obj;
 	}
 
-	function readChar() {
+	function readChar(name) {
 		const v = buf.readUInt8(offset++);
-		console.log('char',v);
+		// console.log('char',name,v);
 		return v;
 	}
 
-	function readShort() {
+	function readShort(name) {
 		const v = buf.readUInt16BE(offset); offset+=2;
-		console.log('short',v)
+		// console.log('short',name,v);
 		return v;
 	}
 
-	function readLong() {
+	function readLong(name) {
 		const v = buf.readUInt32BE(offset); offset+=4;
-		console.log('long',v);
+		// console.log('long',name,v);
 		return v;
 	}
 
 
-	function readFloat() {
-		const v = buf.readFloatBE(offset); offset+=4;
-		console.log('float',v);
+	function readFloat(name) {
+		let v = buf.readFloatBE(offset); offset+=4;
+		// console.log('float',name,v);
 		return v;
 	}
 
@@ -89,4 +90,4 @@ Vunsq.prototype.load = function(buf) {
 };
 
 v = new Vunsq().loadFile('test/simple.vunsq');
-console.log(v.patterns)
+console.log(JSON.stringify(v))
