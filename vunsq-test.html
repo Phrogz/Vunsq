@@ -19,16 +19,21 @@
 var vid = new Vunsq(document.querySelector('canvas'));
 vid.effect(0,fallingStripe);
 vid.effect(1,gadoosh);
+vid.effect(2,fallingStripe);
 
-vid.add({ effect:1, x:4, y:40 });
-vid.add({ effect:1, speed:0.2, x:10, y:50, rotate:45, blend:'lighter' });
-vid.add({ effect:1, speed:0.15, x:10, y:50, rotate:-90, blend:'screen' });
-vid.add({ effect:0, x:12, blend:'screen' });
-vid.add({ effect:0, x:10, start:100, speed:0.8, rotate:-5, scaleX:3, blend:'screen', arg:[0,255,200] });
-vid.add({ effect:0, y:10, speed:1.5, start:100, rotate:5, scale:2, blend:'screen', arg:[100,200,255] });
-vid.add({ effect:1, speed:4, y:200, rotate:-180, blend:'screen' });
-vid.add({ effect:1, speed:3, y:170, blend:'screen' });
-vid.add({ effect:0, x:18, speed:0.2, blend:'screen', arg:[255,255,100] });
+vid.loadFromObject({
+	timeline:[
+		{ effect:1, x:4, y:40 },
+		{ effect:1, speed:0.2, x:10, y:50, blend:'lighter' },
+		{ effect:1, speed:0.15, x:10, y:50, blend:'screen' },
+		{ effect:0, x:12, blend:'screen' },
+		{ effect:0, x:10, start:100, speed:0.8, blend:'screen', args:[0,255,200] },
+		{ effect:0, y:10, speed:1.5, start:100, blend:'screen', args:[100,200,255] },
+		{ effect:1, speed:4, y:200, blend:'screen' },
+		{ effect:1, speed:3, y:170, blend:'screen' },
+		{ effect:2, x:18, speed:0.2, blend:'screen', args:[255,255,100] },
+	]
+});
 
 // vid.debugCanvas = document.querySelectorAll('canvas')[1];
 
