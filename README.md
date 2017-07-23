@@ -22,7 +22,7 @@ You can have a maximum of 128 defined Patterns in a **Pattern Library**.
 A **Pattern Instance** is (surprise!) an instance of a pattern. Like an Event, it specifies a 2D and time transform to show the pattern, and number of times to repeat. (Blending is based on the Events in the Pattern.)
 
 A **Presentation** is the entire ‘movie'. It specifies a BPM it is associated with, and an ideal reference song to play with it.
-A Presentation has a Pattern Library and a grouping of all Events and Pattern Instances.
+A Presentation has a Pattern Library and a **Timeline** that groups together all Events and Pattern Instances to display.
 Presentations can be played by the runtime along with a different song at a different BPM, speeding them up or slowing them down.
 
 _Note: Effects are code in the host runtime, and not stored within a Presentation._
@@ -117,7 +117,7 @@ Events may optionally also specify:
 			{ "effect":0, "start":0, "length":592, "args":[256,65535,65536,16777215,16777216,4294967295] }
 		] },
 	],
-	"instances" : [
+	"timeline" : [
 		{ "pattern":0, "start":0, "length":1000, "repeat":7, "x":3, "y":10 },
 		{ "effect":0, "start":16777216, "length":65536, "repeat":3, "blend":"source-over" }
 	]

@@ -9,7 +9,7 @@
 			{ "effect":0, "start":0, "length":592, "repeat":3, "blend":"screen", "args":[4.1342] },
 			{ "effect":0, "start":0, "length":592, "args":[256,65535,65536,16777215,16777216,4294967295] } ] }
 	],
-	"instances" : [
+	"timeline" : [
 		{ "pattern":17, "start":0, "length":1000, "repeat":7, "x":3, "y":10 },
 		{ "effect":0, "start":16777216, "length":65536, "repeat":3, "blend":"source-over" },
 		{ "effect":14, "start":1, "length":2, "speed":3.0, "repeat":4, "x":5, "y":6, "blend":"destination-atop" }
