@@ -113,17 +113,19 @@ Vunsq.prototype.loadBinary = function(buf) {
 };
 
 Vunsq.prototype.updateIndexes = function() {
+	const patterns = this.patterns;
+
 	// The length of a pattern is the end of the last event
-	this.patterns.forEach(pat => {
+	patterns.forEach(pat => {
 		pat.events.forEach(calculateStopTime);
-		pat.length = Math.max.apply(Math,pat.events.map(i => i._stop));
+		pat.length = Math.max.apply(Math,pat.events.map(i => i.stop));
 	});
 
 	this.timeline.forEach(calculateStopTime);
 
 	function calculateStopTime(inst) {
-		if ('pattern' in inst) inst.length = this.patterns[inst.pattern].length;
-		inst._stop = inst.start + inst.length*(inst.repeat+1);
+		if ('pattern' in inst) inst.length = patterns[inst.pattern].length;
+		inst.stop = inst.start + inst.length*(inst.repeat+1);
 	}
 };
 
@@ -148,7 +150,7 @@ Vunsq.prototype.update = function(t) {
 	if (!this.lastTime || t<this.lastTime) {
 		this.activeInstances.length=0;
 		updateActive(0);
-	} else if (this.nextInstIndex!==undefined) {
+	} else {
 		updateActive(this.nextInstIndex);
 	}
 	this.lastTime = t;
@@ -157,20 +159,24 @@ Vunsq.prototype.update = function(t) {
 
 	function updateActive(startIndex) {
 		delete me.nextInstIndex;
-		for (let i=startIndex;i<me.timeline.length;++i) {
-			const inst = me.timeline[i];
-			if (inst.start>t) {
-				me.nextInstIndex = i;
-				break;
-			} else {
-				me.activeInstances.push(inst);
+		if (startIndex!==undefined) {
+			for (let i=startIndex;i<me.timeline.length;++i) {
+				const inst = me.timeline[i];
+				if (inst.start>t) {
+					me.nextInstIndex = i;
+					break;
+				} else if (inst.stop>t) {
+					me.activeInstances.push(inst);
+				}
 			}
 		}
 
 		// Compact the active list
-		let ct = 0;
-		me.activeInstances.forEach( (inst,_,a) => {if (inst._stop>t) a[ct++]=inst} );
-		me.activeInstances.length = ct;
+		if (me.activeInstances.length) {
+			let ct = 0;
+			me.activeInstances.forEach( (inst,_,a) => { if (inst.stop>t) a[ct++]=inst } );
+			me.activeInstances.length = ct;
+		}
 	}
 };
 
@@ -182,12 +188,12 @@ Vunsq.prototype.draw = function(t) {
 
 	function drawPattern(inst) {
 		const pattern = me.patterns[inst.pattern];
-		const patternTime = ((t-inst.start)*inst.speed) % inst.length;
+		const patternTime = ((t-inst.start) % inst.length)*inst.speed;
 
 		// TODO: figure out a more efficient way to keep track of a pattern's active list
 		for (let i=0;i<pattern.events.length;++i) {
-			let evt = pattern.events[i];
-			if (evt.start<patternTime && evt._stop>patternTime) {
+			const evt = pattern.events[i];
+			if (evt.start<patternTime && evt.stop>patternTime) {
 				drawEvent(evt, patternTime, inst.x, inst.y);
 			}
 		}
@@ -198,13 +204,14 @@ Vunsq.prototype.draw = function(t) {
 		if (yOffset===undefined) yOffset=0;
 
 		const effect = me.effects[evt.effect];
-		const effectTime = ((t-evt.start)*evt.speed) % evt.length;
+		const effectTime = ((t-evt.start) % evt.length)*evt.speed;
 		effect.bbox(effectTime, bbox);
-		if (evt.x) {
+
+		if (evt.x || xOffset) {
 			bbox.x0 += evt.x + xOffset;
 			bbox.x1 += evt.x + xOffset;
 		}
-		if (evt.y) {
+		if (evt.y || yOffset) {
 			bbox.y0 += evt.y + yOffset;
 			bbox.y1 += evt.y + yOffset;
 		}

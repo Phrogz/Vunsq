@@ -22,16 +22,30 @@ vid.effect(1,gadoosh);
 vid.effect(2,fallingStripe);
 
 vid.loadFromObject({
+	patterns:[
+		{ id:0, events:[
+			{ effect:0, start:0,   x:0, length:2000, args:[255,0,0], blend:'lighter' },
+			{ effect:0, start:200, x:2, length:2000, args:[0,255,0], blend:'lighter' },
+			{ effect:0, start:400, x:4, length:2000, args:[0,0,255], blend:'lighter' },
+		] }
+	],
 	timeline:[
-		{ effect:1, x:4, y:40 },
-		{ effect:1, speed:0.2, x:10, y:50, blend:'lighter' },
-		{ effect:1, speed:0.15, x:10, y:50, blend:'screen' },
-		{ effect:0, x:12, blend:'screen' },
-		{ effect:0, x:10, start:100, speed:0.8, blend:'screen', args:[0,255,200] },
-		{ effect:0, y:10, speed:1.5, start:100, blend:'screen', args:[100,200,255] },
-		{ effect:1, speed:4, y:200, blend:'screen' },
-		{ effect:1, speed:3, y:170, blend:'screen' },
-		{ effect:2, x:18, speed:0.2, blend:'screen', args:[255,255,100] },
+		// { effect:1, x:4, y:40 },
+		// { effect:1, speed:0.2, x:10, y:50, blend:'lighter' },
+		// { effect:1, speed:0.15, x:10, y:50, blend:'screen' },
+		// { effect:0, x:12, blend:'screen' },
+		// { effect:0, x:10, start:100, speed:0.8, blend:'screen', args:[0,255,200] },
+		// { effect:0, y:10, speed:1.5, start:100, blend:'screen', args:[100,200,255] },
+		// { effect:1, speed:4, y:200, blend:'screen' },
+		// { effect:1, speed:3, y:170, blend:'screen' },
+		// { effect:2, x:18, speed:0.2, blend:'screen', args:[255,255,100] },
+		// { effect:1, x:4, y:40, speed:0.2 },
+		// { pattern:0, x:10, speed:2 },
+		{ pattern:0, speed:0.1, start:1000, x:10, repeat:3 },
+		{ effect:0, x:10, y:0, start:000, length:1000, repeat:15, args:[128,128,0], blend:'screen' },
+		{ effect:0, x:10, y:0, start:100, length:1000, repeat:15, args:[128,128,0], blend:'screen' },
+		{ effect:0, x:10, y:0, start:200, length:1000, repeat:15, args:[128,128,0], blend:'screen' },
+		{ effect:0, x:10, y:0, start:300, length:1000, repeat:15, args:[128,128,0], blend:'screen' },
 	]
 });
 
@@ -39,7 +53,7 @@ vid.loadFromObject({
 
 function fallingStripe(t,x,y,data,offset,arg) {
 	if (x>=1 || x<0) return;
-	var limit = Math.round(t/10) % 300
+	var limit = Math.round(t/10);
 	if (y<=limit) {
 		data[offset+0] = arg ? arg[0] : 255;
 		data[offset+1] = arg ? arg[1] : 255;
@@ -48,7 +62,7 @@ function fallingStripe(t,x,y,data,offset,arg) {
 	}
 }
 fallingStripe.bbox = function(t,bbox) {
-	var limit = Math.round(t/10) % 300;
+	var limit = Math.round(t/10);
 	bbox.x0 = 0;
 	bbox.x1 = 1;
 	bbox.y0 = limit-25;

@@ -194,3 +194,4 @@ All multi-byte numbers are stored in big-endian format.
 # Known Limitations (aka TODO)
 
 * Tests (made with Engineering Art) show that many effects pre-compute some variables that are based solely on the time value. The same code is run, with the same result, for every pixel at a given time value. It would be nice to allow effects to run this compute during the `bbox` function and then return some data that will be passed along to the effect each time it is called.
+* Resolve physics around speed, length, and repeat, especially for patterns.
