@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>EffectEditor.qml</file>
+        <file>PreviewCanvas.qml</file>
+        <file>PatternEditor.qml</file>
+        <file>Timeline.qml</file>
+        <file>Header.qml</file>
+        <file>vunsq.js</file>
+    </qresource>
+</RCC>
