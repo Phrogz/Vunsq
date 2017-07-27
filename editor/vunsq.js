@@ -19,7 +19,7 @@ Vunsq.prototype.loadJSON = function(json) {
 };
 
 Vunsq.prototype.loadFromObject = function(object) {
-    ['bpm','media','patterns','timeline'].forEach(function(s){ if (object[s]) this[s]=object[s] });
+    ['bpm','media','patterns','timeline'].forEach(function(s){ if (object[s]) this[s]=object[s] }, this);
     this.patterns.forEach(function(pat){ pat.events.forEach(setDefaults) });
 	this.timeline.forEach(setDefaults);
 	this.updateIndexes();
@@ -139,7 +139,6 @@ Vunsq.prototype.displayOn = function(canvas) {
 	this.effects = [];
 	this.timeline = [];
 	this.tmpCtx = this.tmpCanvas.getContext('2d');
-    console.log(this.w, this.h);
 	this.tmpData = this.tmpCtx.getImageData(0,0,this.w,this.h);
 };
 
@@ -157,10 +156,11 @@ Vunsq.prototype.update = function(t) {
 	return this;
 
 	function updateActive(startIndex) {
-		delete me.nextInstIndex;
+        me.nextInstIndex = 0;
 		if (startIndex!==undefined) {
-            for (var i=startIndex;i<me.timeline.length;++i) {
+            for (var i=startIndex; i<me.timeline.length; ++i) {
                 var inst = me.timeline[i];
+                console.log(i,t,inst.start,inst.start>t,inst.stop,inst.stop>t);
 				if (inst.start>t) {
 					me.nextInstIndex = i;
 					break;
@@ -170,20 +170,24 @@ Vunsq.prototype.update = function(t) {
 			}
 		}
 
+        console.log('before',me.activeInstances.length,me.timeline.length);
+
 		// Compact the active list
 		if (me.activeInstances.length) {
             var ct = 0;
             me.activeInstances.forEach( function(inst,_,a){ if (inst.stop>t) a[ct++]=inst } );
 			me.activeInstances.length = ct;
 		}
-	}
+
+        console.log('after',me.activeInstances.length);
+    }
 };
 
 Vunsq.prototype.draw = function(t) {
     var me=this, bbox={}, d=this.tmpData.data;
 	this.ctx.globalCompositeOperation = 'source-over';
 	this.ctx.fillRect(0,0,this.w,this.h);
-    this.activeInstances.forEach( function(inst){ ('effect' in inst) ? drawEvent(inst,t) : drawPattern(inst) });
+    this.activeInstances.forEach( function(inst){ if ('effect' in inst) drawEvent(inst,t); else drawPattern(inst) });
 
 	function drawPattern(inst) {
         var pattern = me.patterns[inst.pattern];
@@ -218,16 +222,18 @@ Vunsq.prototype.draw = function(t) {
 		// Floor minimums && ceil maximums to integers (without function call)
 		// TODO: if we require bbox to be integer values, me can be removed (now that we don't have 2D scale/rotate/matrix)
         var n;
-		bbox.x0 = bbox.x0<0 ? (n=bbox.x0<<0, n==bbox.x0 ? n : n-1) : (bbox.x0<<0);
-		bbox.y0 = bbox.y0<0 ? (n=bbox.y0<<0, n==bbox.y0 ? n : n-1) : (bbox.y0<<0);
-		bbox.x1 = bbox.x1<0 ? (bbox.x1<<0) : (n=bbox.x1<<0, n==bbox.x1 ? n : n+1);
-		bbox.y1 = bbox.y1<0 ? (bbox.y1<<0) : (n=bbox.y1<<0, n==bbox.y1 ? n : n+1);
+        bbox.x0 = bbox.x0<0 ? (n=bbox.x0<<0, n===bbox.x0 ? n : n-1) : (bbox.x0<<0);
+        bbox.y0 = bbox.y0<0 ? (n=bbox.y0<<0, n===bbox.y0 ? n : n-1) : (bbox.y0<<0);
+        bbox.x1 = bbox.x1<0 ? (bbox.x1<<0) : (n=bbox.x1<<0, n===bbox.x1 ? n : n+1);
+        bbox.y1 = bbox.y1<0 ? (bbox.y1<<0) : (n=bbox.y1<<0, n===bbox.y1 ? n : n+1);
 
 		// Clamp values to within canvas
 		if (bbox.x0<0) bbox.x0=0; else if (bbox.x0>=me.w) bbox.x0=me.w-1;
 		if (bbox.x1<0) bbox.x1=0; else if (bbox.x1>=me.w) bbox.x1=me.w-1;
 		if (bbox.y0<0) bbox.y0=0; else if (bbox.y0>=me.h) bbox.y0=me.h-1;
 		if (bbox.y1<0) bbox.y1=0; else if (bbox.y1>=me.h) bbox.y1=me.h-1;
+
+        console.log('event',evt.effect,JSON.stringify(bbox))
 
 		bbox.w = bbox.x1-bbox.x0;
 		bbox.h = bbox.y1-bbox.y0;
