@@ -1,10 +1,11 @@
-function Vunsq( mainCanvas, tmpCanvas ) {
-    this.tmpCanvas = tmpCanvas;
+function Vunsq( mainContext, tmpContext ) {
+    this.tmpCtx = tmpContext;
+    this.tmpData = tmpContext.getImageData();
 	this.effects  = [];
 	this.patterns = [];
 	this.timeline = [];
 	this.activeInstances = [];
-    if (mainCanvas) this.displayOn(mainCanvas);
+    if (mainContext) this.displayOn(mainContext);
 }
 
 Vunsq.BLEND_MODES = ["source-over", "source-in", "source-out", "source-atop", "destination-over", "destination-in", "destination-out", "destination-atop", "lighter", "copy", "xor", "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"];
@@ -129,17 +130,14 @@ Vunsq.prototype.updateIndexes = function() {
 	}
 };
 
-Vunsq.prototype.displayOn = function(canvas) {
-	this.can = canvas;
-	this.ctx = canvas.getContext('2d');
+Vunsq.prototype.displayOn = function(context) {
+    this.ctx = context;
 	this.ctx.fillStyle = 'black';
-	this.w = canvas.width;
-	this.h = canvas.height;
+    this.w = context.canvas.width;
+    this.h = context.canvas.height;
 	this.ctx.fillStyle = 'black';
 	this.effects = [];
 	this.timeline = [];
-	this.tmpCtx = this.tmpCanvas.getContext('2d');
-	this.tmpData = this.tmpCtx.getImageData(0,0,this.w,this.h);
 };
 
 // Draw according to a particular time
@@ -151,16 +149,16 @@ Vunsq.prototype.update = function(t) {
 	} else {
 		updateActive(this.nextInstIndex);
 	}
-	this.lastTime = t;
+    this.lastTime = t;
 	this.draw(t);
 	return this;
 
 	function updateActive(startIndex) {
-        me.nextInstIndex = 0;
-		if (startIndex!==undefined) {
+        me.nextInstIndex = undefined;
+        if (startIndex!==undefined) {
             for (var i=startIndex; i<me.timeline.length; ++i) {
                 var inst = me.timeline[i];
-                console.log(i,t,inst.start,inst.start>t,inst.stop,inst.stop>t);
+                //console.log(i,t,inst.start,inst.start>t,inst.stop,inst.stop>t);
 				if (inst.start>t) {
 					me.nextInstIndex = i;
 					break;
@@ -170,24 +168,24 @@ Vunsq.prototype.update = function(t) {
 			}
 		}
 
-        console.log('before',me.activeInstances.length,me.timeline.length);
-
 		// Compact the active list
 		if (me.activeInstances.length) {
             var ct = 0;
             me.activeInstances.forEach( function(inst,_,a){ if (inst.stop>t) a[ct++]=inst } );
 			me.activeInstances.length = ct;
-		}
-
-        console.log('after',me.activeInstances.length);
+        }
     }
 };
 
 Vunsq.prototype.draw = function(t) {
-    var me=this, bbox={}, d=this.tmpData.data;
+    var me=this, bbox={x0:0,y0:0,x1:this.w,y1:this.h,w:this.w,h:this.h}, d=this.tmpData.data;
 	this.ctx.globalCompositeOperation = 'source-over';
-	this.ctx.fillRect(0,0,this.w,this.h);
-    this.activeInstances.forEach( function(inst){ if ('effect' in inst) drawEvent(inst,t); else drawPattern(inst) });
+    this.ctx.fillStyle = 'black';
+    this.ctx.fillRect(0,0,this.w,this.h);
+    this.activeInstances.forEach( function(inst){
+        if ('effect' in inst) drawEvent(inst,t);
+        else                  drawPattern(inst)
+    });
 
 	function drawPattern(inst) {
         var pattern = me.patterns[inst.pattern];
@@ -208,35 +206,35 @@ Vunsq.prototype.draw = function(t) {
 
         var effect = me.effects[evt.effect];
         var effectTime = ((t-evt.start) % evt.length)*evt.speed;
-		effect.bbox(effectTime, bbox);
 
-		if (evt.x || xOffset) {
-			bbox.x0 += evt.x + xOffset;
-			bbox.x1 += evt.x + xOffset;
-		}
-		if (evt.y || yOffset) {
-			bbox.y0 += evt.y + yOffset;
-			bbox.y1 += evt.y + yOffset;
-		}
-
+        // FIXME: once https://bugreports.qt.io/browse/QTBUG-62346 is fixed, re-use bbox again
+        // effect.bbox(effectTime, bbox);
+        //
+        // if (evt.x || xOffset) {
+        //	bbox.x0 += evt.x + xOffset;
+        //	bbox.x1 += evt.x + xOffset;
+        // }
+        // if (evt.y || yOffset) {
+        // 	bbox.y0 += evt.y + yOffset;
+        // 	bbox.y1 += evt.y + yOffset;
+        // }
+        //
 		// Floor minimums && ceil maximums to integers (without function call)
 		// TODO: if we require bbox to be integer values, me can be removed (now that we don't have 2D scale/rotate/matrix)
-        var n;
-        bbox.x0 = bbox.x0<0 ? (n=bbox.x0<<0, n===bbox.x0 ? n : n-1) : (bbox.x0<<0);
-        bbox.y0 = bbox.y0<0 ? (n=bbox.y0<<0, n===bbox.y0 ? n : n-1) : (bbox.y0<<0);
-        bbox.x1 = bbox.x1<0 ? (bbox.x1<<0) : (n=bbox.x1<<0, n===bbox.x1 ? n : n+1);
-        bbox.y1 = bbox.y1<0 ? (bbox.y1<<0) : (n=bbox.y1<<0, n===bbox.y1 ? n : n+1);
-
+        // var n;
+        // bbox.x0 = bbox.x0<0 ? (n=bbox.x0<<0, n===bbox.x0 ? n : n-1) : (bbox.x0<<0);
+        // bbox.y0 = bbox.y0<0 ? (n=bbox.y0<<0, n===bbox.y0 ? n : n-1) : (bbox.y0<<0);
+        // bbox.x1 = bbox.x1<0 ? (bbox.x1<<0) : (n=bbox.x1<<0, n===bbox.x1 ? n : n+1);
+        // bbox.y1 = bbox.y1<0 ? (bbox.y1<<0) : (n=bbox.y1<<0, n===bbox.y1 ? n : n+1);
+        //
 		// Clamp values to within canvas
-		if (bbox.x0<0) bbox.x0=0; else if (bbox.x0>=me.w) bbox.x0=me.w-1;
-		if (bbox.x1<0) bbox.x1=0; else if (bbox.x1>=me.w) bbox.x1=me.w-1;
-		if (bbox.y0<0) bbox.y0=0; else if (bbox.y0>=me.h) bbox.y0=me.h-1;
-		if (bbox.y1<0) bbox.y1=0; else if (bbox.y1>=me.h) bbox.y1=me.h-1;
-
-        console.log('event',evt.effect,JSON.stringify(bbox))
-
-		bbox.w = bbox.x1-bbox.x0;
-		bbox.h = bbox.y1-bbox.y0;
+        // if (bbox.x0<0) bbox.x0=0; else if (bbox.x0>=me.w) bbox.x0=me.w-1;
+        // if (bbox.x1<0) bbox.x1=0; else if (bbox.x1>=me.w) bbox.x1=me.w-1;
+        // if (bbox.y0<0) bbox.y0=0; else if (bbox.y0>=me.h) bbox.y0=me.h-1;
+        // if (bbox.y1<0) bbox.y1=0; else if (bbox.y1>=me.h) bbox.y1=me.h-1;
+        //
+        // bbox.w = bbox.x1-bbox.x0;
+        // bbox.h = bbox.y1-bbox.y0;
 
         for (var x=bbox.x0;x<=bbox.x1;++x) {
             for (var y=bbox.y0;y<=bbox.y1;++y) {
@@ -246,12 +244,15 @@ Vunsq.prototype.draw = function(t) {
 				// set pixel fully transparent before calling the effect
 				d[offset+3] = 0;
 
-				effect(effectTime, x-evt.x-xOffset, y-evt.y-yOffset, d, offset, evt.args);
+                effect(effectTime, x-evt.x-xOffset, y-evt.y-yOffset, d, offset, evt.args);
 			}
 		}
 
-		me.tmpCtx.putImageData(me.tmpData,0,0,bbox.x0,bbox.y0,bbox.w,bbox.h);
-		me.ctx.globalCompositeOperation = evt.blend;
-		me.ctx.drawImage(me.tmpCanvas,bbox.x0,bbox.y0,bbox.w,bbox.h,bbox.x0,bbox.y0,bbox.w,bbox.h);
-	}
+        me.tmpCtx.putImageData(me.tmpData,0,0,bbox.x0,bbox.y0,bbox.w,bbox.h);
+        me.ctx.globalCompositeOperation = evt.blend;
+//        me.ctx.drawImage(me.tmpCtx.canvas,bbox.x0,bbox.y0,bbox.w,bbox.h,bbox.x0,bbox.y0,bbox.w,bbox.h);
+        me.ctx.drawImage(me.tmpCtx.canvas,0,0);
+    }
 };
+
+function rand(n) { return Math.random()*n << 0 }
