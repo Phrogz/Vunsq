@@ -7,6 +7,5 @@
         <file>Timeline.qml</file>
         <file>Header.qml</file>
         <file>vunsq.js</file>
-        <file>test.png</file>
     </qresource>
 </RCC>
