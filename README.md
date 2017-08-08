@@ -70,7 +70,8 @@ All multi-byte numbers are stored in big-endian format.
  bytes | field
 :-----:|-----------------------------------
    4   | Presentation BPM (float)
-   ~   | Media URI (null terminated UTF-8)
+   1   | Characters in Media URI (uint8)
+   ~   | Media URI (UTF-8)
    ~   | Timeline Index
    ~   | Timeline
 
