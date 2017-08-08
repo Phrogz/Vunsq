@@ -28,6 +28,38 @@ Presentations can be played by the runtime along with a different song at a diff
 
 _Note: Effects are code in the host runtime, and not stored within a Presentation._
 
+# JSON Example
+
+{
+   "media" : "CHVRCHES-LeaveATrace.m4a",
+   "bpm"   : 100.32,
+   "timeline" : [
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[255,0,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[255,0,0] }],
+      [{ "effect":2, "speed":2.5 }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[255,0,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":2, "speed":2.5 }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[255,0,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[255,0,0] }],
+      [{ "effect":2, "speed":2.5 }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[255,0,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
+      [{ "effect":2, "speed":2.5 }]
+   ]
+}
 
 # Binary Format
 
@@ -39,6 +71,7 @@ All multi-byte numbers are stored in big-endian format.
 :-----:|-----------------------------------
    4   | Presentation BPM (float)
    ~   | Media URI (null terminated UTF-8)
+   ~   | Timeline Index
    ~   | Timeline
 
 
@@ -62,21 +95,36 @@ All multi-byte numbers are stored in big-endian format.
    ~   | Pattern … Event …
 -->
 
+## Timeline Index
+
+ bytes | field
+:-----:|-----------------------------------------
+   1   | Strand Count                    (uint8)
+   4   | Offset to Strand 1 Timeline     (uint32)
+   2   | Byte count of Strand 1 Timeline (uint16)
+   4   | Offset to Strand 2 Timeline     (uint32)
+   2   | Byte count of Strand 2 Timeline (uint16)
+   4   | Offset to Strand … Timeline     (uint32)
+   2   | Byte count of Strand … Timeline (uint16)
+   ~   | (repeat for all strands)
+
+
 ## Timeline
 
  bytes | field
 :-----:|-----------------------------------
-   1   | Strand Index (uint8)
-   4   | Event Count (uint32)
+   4   | Strand 1 Event Count (uint32)
    ~   | Event 1
    ~   | Event 2
    ~   | Event …
-   1   | Strand Index (uint8)
-   4   | Event Count (uint32)
+   4   | Strand 2 Event Count (uint32)
    ~   | Event 1
    ~   | Event 2
    ~   | Event …
-   ~   | (repeat for all strands)
+   4   | Strand … Event Count (uint32)
+   ~   | Event 1
+   ~   | Event 2
+   ~   | Event …
 
 
 ## Event

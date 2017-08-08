@@ -34,9 +34,10 @@ def json2bin(json)
 	bpm = (preso["bpm"] || 0).to_f
 	uri = (preso["media"] || "")
 
+	header = [bpm,uri.length,uri].pack('eCa*')
+
 	timeline = (preso["timeline"]||[]).map.with_index do |evts,i|
 		[
-			i,
 			evts.length,
 			evts.map do |evt|
 				args = (evt['args'] || []).flat_map do |arg|
@@ -46,9 +47,9 @@ def json2bin(json)
 							warn "Clamping argument #{arg} to maximum value of #{2**32-1}"
 							arg=2**32-1
 						end
-						arg==0 ? 0 : [arg].pack('N').unpack('C*').drop_while{ |i| i==0 }
+						arg==0 ? 0 : [arg].pack('V').unpack('C*').drop_while{ |i| i==0 }
 					when Float
-						[arg].pack('g').unpack('C*')
+						[arg].pack('e').unpack('C*')
 					end
 				end
 				[
@@ -57,11 +58,20 @@ def json2bin(json)
 					(evt['speed'] || 1).to_f,
 					args.length,
 					*args
-				].pack('CNgCC*')
+				].pack('CVeCC*')
 			end.join
-		].pack('CNa*')
-	end.join
-	[bpm,uri,timeline].pack('ga*xa*')
+		].pack('Va*')
+	end
+
+	bytes   = timeline.map(&:length)
+	offset  = header.length
+	offsets = bytes.map{ |len| offset.tap{ offset+=len } }
+	timeline_index = [
+		timeline.length,
+		offsets.zip(bytes).map{ |o,b| [o,b].pack('Vv') }.join
+	].pack('Ca*')
+
+	[header,timeline_index,timeline.join].join
 end
 
 run! if __FILE__==$0
