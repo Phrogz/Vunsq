@@ -1,8 +1,6 @@
 function Vunsq( canvas ) {
-	this.tmpCanvas = document.createElement('canvas');
 	this.effects  = [];
-	this.patterns = [];
-	this.timeline = [];
+	this.timeline = []; // Array of events indexed by strand
 	this.activeInstances = [];
 	if (canvas) this.displayOn(canvas);
 }
@@ -22,7 +20,6 @@ Vunsq.prototype.loadFromObject = function(object) {
 	['bpm','media','patterns','timeline'].forEach( s => { if (object[s]) this[s]=object[s] } );
 	this.patterns.forEach(pat => pat.events.forEach(setDefaults));
 	this.timeline.forEach(setDefaults);
-	this.updateIndexes();
 	return this;
 
 	function setDefaults(inst) {
@@ -51,81 +48,52 @@ Vunsq.prototype.loadBinary = function(buf) {
 	this.bpm = readFloat('bpm');
 
 	offset=3;
-	while (buf[++offset]);
+	while (buf[++offset]); // Loop until we hit a null value
 	let media=Buffer.allocUnsafe(offset-4);
 	buf.copy(media,0,4,offset);
 	this.media = media.toString('utf8');
 
 	offset++; // Skip over the null terminator for the string
 
-	me.patterns = Array.from({ length:readChar('patternCt') }, (_,i) => ({
-		id: i,
-		events: Array.from({ length:readShort('eventCt') }, readEventOrPattern )
-	}) );
-
-	me.timeline = Array.from({ length:readLong('instCt') }, readEventOrPattern);
-	this.updateIndexes();
+	me.timeline = [];
+	while (offset<buf.length) {
+		const idx = readChar('strandIndex');
+		me.timeline[idx] = Array.from({ length:readLong('eventCount') }, readEvent);
+	}
 
 	return this;
 
-	function readEventOrPattern() {
-		const id = readChar('id');
-		const obj = {
-			start:  readLong('start'),
-			length: readLong('length'),
-			speed:  readFloat('speed'),
-			repeat: readShort('repeat'),
-			x:      readChar('x'),
-			y:      readChar('y')
+	function readEvent() {
+		return {
+			event: readChar('eventId'),
+			start: readLong('eventStart'),
+			speed: readFloat('eventSpeed'),
+			args:  Array.from({length:readChar('eventArgCount')}, (_,i)=>readChar('arg#'+i) )
 		};
-		if (id<128) obj.pattern = id;
-		else {
-			obj.effect = id-128;
-			obj.blend  = Vunsq.BLEND_MODES[readChar('blend')];
-			obj.args   = Array.from({length:readChar('argCount')}, (_,i)=>readChar('arg #'+i) );
-		}
-		return obj;
 	}
 
 	function readChar(name) {
 		const v = buf.readUInt8(offset++);
-		// console.log('char',name,v);
+		if (process.env.VUNSQDEBUG) console.log('char',name,v);
 		return v;
 	}
 
 	function readShort(name) {
 		const v = buf.readUInt16BE(offset); offset+=2;
-		// console.log('short',name,v);
+		if (process.env.VUNSQDEBUG) console.log('short',name,v);
 		return v;
 	}
 
 	function readLong(name) {
 		const v = buf.readUInt32BE(offset); offset+=4;
-		// console.log('long',name,v);
+		if (process.env.VUNSQDEBUG) console.log('long',name,v);
 		return v;
 	}
 
 	function readFloat(name) {
 		let v = buf.readFloatBE(offset); offset+=4;
-		// console.log('float',name,v);
+		if (process.env.VUNSQDEBUG) console.log('float',name,v);
 		return v;
-	}
-};
-
-Vunsq.prototype.updateIndexes = function() {
-	const patterns = this.patterns;
-
-	// The length of a pattern is the end of the last event
-	patterns.forEach(pat => {
-		pat.events.forEach(calculateStopTime);
-		pat.length = Math.max.apply(Math,pat.events.map(i => i.stop));
-	});
-
-	this.timeline.forEach(calculateStopTime);
-
-	function calculateStopTime(inst) {
-		if ('pattern' in inst) inst.length = patterns[inst.pattern].length;
-		inst.stop = inst.start + inst.length*(inst.repeat+1);
 	}
 };
 
@@ -138,6 +106,7 @@ Vunsq.prototype.displayOn = function(canvas) {
 	this.ctx.fillStyle = 'black';
 	this.effects = [];
 	this.timeline = [];
+	this.tmpCanvas = document.createElement('canvas');
 	this.tmpCanvas.width  = this.w;
 	this.tmpCanvas.height = this.h;
 	this.tmpCtx = this.tmpCanvas.getContext('2d');
@@ -269,3 +238,7 @@ Vunsq.prototype.go = function(fpsEl) {
 		}
 	}
 };
+
+v = new Vunsq;
+v.loadBinaryFile('./test/simple.vunsq');
+console.log(JSON.stringify(v));
