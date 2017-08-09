@@ -43,22 +43,32 @@ Vunsq.prototype.loadBinaryFile = function(vunsqFile) {
 };
 
 Vunsq.prototype.loadBinary = function(buf) {
-	const me = this;
 	let offset=0;
+
+	// Header
 	this.bpm = readFloat('bpm');
-
-	offset=3;
-	while (buf[++offset]); // Loop until we hit a null value
-	let media=Buffer.allocUnsafe(offset-4);
-	buf.copy(media,0,4,offset);
+	let uriBytes = readChar('uriBytes');
+	let media=Buffer.allocUnsafe(uriBytes);
+	console.log('media is',media.length);
+	buf.copy(media,0,5,uriBytes+5);
 	this.media = media.toString('utf8');
+	if (process.env.VUNSQDEBUG) {
+		console.log('media buffer',media);
+		console.log('@'+offset+' read media as',this.media);
+	}
+	offset += uriBytes;
 
-	offset++; // Skip over the null terminator for the string
+	// Timeline header
+	let strandCount = readChar('strandCount');
+	for (let i=0;i<strandCount;++i) {
+		readLong('Strand #'+i+" Offset");
+		readShort('Strand #'+i+" Bytes");
+	}
 
-	me.timeline = [];
-	while (offset<buf.length) {
-		const idx = readChar('strandIndex');
-		me.timeline[idx] = Array.from({ length:readLong('eventCount') }, readEvent);
+	// Timeline
+	this.timeline = [];
+	for (var idx=0;idx<strandCount;++idx) {
+		this.timeline[idx] = Array.from({ length:readLong('Strand #'+idx+' eventCount') }, readEvent);
 	}
 
 	return this;
@@ -74,25 +84,25 @@ Vunsq.prototype.loadBinary = function(buf) {
 
 	function readChar(name) {
 		const v = buf.readUInt8(offset++);
-		if (process.env.VUNSQDEBUG) console.log('char',name,v);
+		if (process.env.VUNSQDEBUG) console.log('@'+(offset-1)+' char',name,v);
 		return v;
 	}
 
 	function readShort(name) {
-		const v = buf.readUInt16BE(offset); offset+=2;
-		if (process.env.VUNSQDEBUG) console.log('short',name,v);
+		const v = buf.readUInt16LE(offset); offset+=2;
+		if (process.env.VUNSQDEBUG) console.log('@'+(offset-2)+' short',name,v);
 		return v;
 	}
 
 	function readLong(name) {
-		const v = buf.readUInt32BE(offset); offset+=4;
-		if (process.env.VUNSQDEBUG) console.log('long',name,v);
+		const v = buf.readUInt32LE(offset); offset+=4;
+		if (process.env.VUNSQDEBUG) console.log('@'+(offset-4)+' long',name,v);
 		return v;
 	}
 
 	function readFloat(name) {
-		let v = buf.readFloatBE(offset); offset+=4;
-		if (process.env.VUNSQDEBUG) console.log('float',name,v);
+		let v = buf.readFloatLE(offset); offset+=4;
+		if (process.env.VUNSQDEBUG) console.log('@'+(offset-4)+' float',name,v);
 		return v;
 	}
 };

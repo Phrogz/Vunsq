@@ -34,7 +34,7 @@ def json2bin(json)
 	bpm = (preso["bpm"] || 0).to_f
 	uri = (preso["media"] || "")
 
-	header = [bpm,uri.length,uri].pack('eCa*')
+	header = [bpm,uri.bytesize,uri].pack('eCa*')
 
 	timeline = (preso["timeline"]||[]).map.with_index do |evts,i|
 		[
@@ -64,7 +64,8 @@ def json2bin(json)
 	end
 
 	bytes   = timeline.map(&:length)
-	offset  = header.length
+	timeline_index_length = 1 + 6*timeline.length
+	offset  = header.length + timeline_index_length
 	offsets = bytes.map{ |len| offset.tap{ offset+=len } }
 	timeline_index = [
 		timeline.length,
