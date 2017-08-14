@@ -7,5 +7,6 @@
         <file>Timeline.qml</file>
         <file>Header.qml</file>
         <file>vunsq.js</file>
+        <file>CodeEditor.qml</file>
     </qresource>
 </RCC>
