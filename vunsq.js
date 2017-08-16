@@ -47,10 +47,11 @@ Vunsq.prototype.loadBinary = function(buf) {
 
 	// Header
 	this.bpm = readFloat('bpm');
+	this.length = readLong('presoLength');
 	let uriBytes = readChar('uriBytes');
 	let media=Buffer.allocUnsafe(uriBytes);
 	console.log('media is',media.length);
-	buf.copy(media,0,5,uriBytes+5);
+	buf.copy(media,0,offset,uriBytes+offset);
 	this.media = media.toString('utf8');
 	if (process.env.VUNSQDEBUG) {
 		console.log('media buffer',media);

@@ -1,5 +1,6 @@
 {
    "bpm"   : 100.32,
+   "length": 237483,
    "media" : "CHVRCHES-LeaveATrace.m4a",
    "timeline" : [
       [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[255,0,0] }],
