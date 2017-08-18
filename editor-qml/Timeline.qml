@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.7
 
 Item {
     id: root
@@ -8,6 +8,7 @@ Item {
     property int startMS: 0
     property real currentMS: 9000
     property var strandData: []
+    property real endTime: 1000
 
     property real pxPerSecond: 1000/msPerPixel
     property real pxPerBeat: 60 * pxPerSecond / bpm
@@ -73,7 +74,7 @@ Item {
                 stepSize /= 10;
                 if (stepSize>=10) {
                     context.fillStyle = '#33FFFFFF';
-                    for (var x=zeroOffset;x<=width;x+=stepSize) {
+                    for (x=zeroOffset; x<=width; x+=stepSize) {
                         context.fillRect(x,0,1,height*0.25);
                     }
                 }
@@ -81,27 +82,31 @@ Item {
                 stepSize = pxPerBeat;
                 if (stepSize<10) stepSize*=4;
                 context.fillStyle = '#9900FF00';
-                for (var x=zeroOffset;x<=width;x+=stepSize) {
+                for (x=zeroOffset; x<=width; x+=stepSize) {
                     context.fillRect(x,0,1,height*0.5);
                 }
             }
             MouseArea {
                 anchors.fill: parent
                 onClicked: currentMS = mouseX * msPerPixel
+                scrollGestureEnabled: true
+
             }
         }
 
         ListView {
             id: rows
             anchors { top:ruler.bottom; left:parent.left; right:parent.right; bottom:parent.bottom }
+            contentX: startMS / msPerPixel
             model: ListModel { id:timelinerows }
+            interactive: false
             delegate: ListView {
                 orientation: ListView.Horizontal
                 height:rows.height / timelinerows.count
                 width:rows.width
                 model: events
                 delegate: Rectangle {
-                    property real endTime: (index < modelData.count-1) ? modelData.get(index+1).start : start + 4*msPerBeat
+                    property real endTime: (index < modelData.count-1) ? modelData.get(index+1).start : root.endTime
                     width: (endTime - start) / msPerPixel
                     height: rows.height / timelinerows.count
                     color: effect ? colorsByEffect[effect-1] : 'red'
@@ -113,8 +118,10 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
-                onPositionChanged: {
-//                    console.log("Mouse over ",mouseX*msPerPixel)
+                scrollGestureEnabled: true
+                onPositionChanged: currentMS = mouseX * msPerPixel + startMS
+                onWheel: {
+                    startMS = Math.max(0, startMS + wheel.angleDelta.y * msPerPixel);
                 }
             }
         }
@@ -123,7 +130,7 @@ Item {
             id: playhead
             color:'orange'
             width:1; height:parent.height
-            x: currentMS / msPerPixel
+            x: (currentMS - startMS) / msPerPixel
         }
     }
 }

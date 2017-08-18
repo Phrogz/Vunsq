@@ -15,7 +15,7 @@ Vunsq.prototype.loadJSON = function(json) {
 };
 
 Vunsq.prototype.loadFromObject = function(object) {
-    ['bpm','media','patterns','timeline'].forEach(function(s){ if (object[s]) this[s]=object[s] }, this);
+    ['bpm','length','media','patterns','timeline'].forEach(function(s){ if (object[s]) this[s]=object[s] }, this);
     this.timeline.forEach(function(evts){ evts.forEach(setDefaults) });
 	return this;
 

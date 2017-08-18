@@ -29,6 +29,7 @@ Window {
                    vid.effect(1, fallingStripe);
 
                    vid.loadFromObject({
+                     length:60000,
                      bpm:100.28,
                      timeline:[[{effect:1}], [{effect:0}, {effect:1, start:500, args:[255, 0, 0]}], [{effect:0}, {effect:1, start:1000}], [{effect:0}, {effect:1, start:1500}],
                                [{effect:2}, {effect:3, start:2700}], [{effect:1}], [{effect:1}], [{effect:1}],
@@ -38,6 +39,7 @@ Window {
                    });
 
                    timeline.strandData = vid.timeline;
+                   timeline.endTime = vid.length;
 
                    function fallingStripe(t, x, h, args, data, bpm) {
                        var finish = Math.round(t / 10) % h
