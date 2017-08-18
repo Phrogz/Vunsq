@@ -31,8 +31,9 @@ _Note: Effects are code in the host runtime, and not stored within a Presentatio
 # JSON Example
 
 {
-   "media" : "CHVRCHES-LeaveATrace.m4a",
-   "bpm"   : 100.32,
+   "bpm"      : 100.32,
+   "length"   : 237483,
+   "media"    : "CHVRCHES-LeaveATrace.m4a",
    "timeline" : [
       [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[255,0,0] }],
       [{ "effect":0, "start":0 }, { "effect":1, "start":598, "args":[0,255,0] }],
@@ -63,38 +64,19 @@ _Note: Effects are code in the host runtime, and not stored within a Presentatio
 
 # Binary Format
 
-All multi-byte numbers are stored in big-endian format.
+All multi-byte numbers are stored in little-endian format.
 
 ## Presentation
 
  bytes | field
 :-----:|-----------------------------------
    4   | Presentation BPM (float)
+   4   | Presentation duration (uint32)
    1   | Characters in Media URI (uint8)
    ~   | Media URI (UTF-8)
    ~   | Timeline Index
    ~   | Timeline
 
-
-<!--
-## Pattern Library
-
- bytes | field
-:-----:|-----------------------------------
-   1   | Pattern Count (uint8; max:128)
-   2   | Pattern 128 Event Count (uint16)
-   ~   | Pattern 128 Event 1
-   ~   | Pattern 128 Event 2
-   ~   | Pattern 128 Event …
-   2   | Pattern 129 Event Count (uint16)
-   ~   | Pattern 129 Event 1
-   ~   | Pattern 129 Event 2
-   ~   | Pattern 129 Event …
-   2   | Pattern … Event Count (uint16)
-   ~   | Pattern … Event 1
-   ~   | Pattern … Event 2
-   ~   | Pattern … Event …
--->
 
 ## Timeline Index
 
@@ -139,13 +121,3 @@ All multi-byte numbers are stored in big-endian format.
    1   | Arg 1      (uint8)
    1   | Arg 2      (uint8)
    1   | Arg …      (uint8)
-
-<!--
-## Instance
-
- bytes | field
-:-----:|-----------------------------------
-   1   | Pattern# (uint8; 0-127 only)
-   4   | Start    (uint32 ms)
-   4   | Speed    (float)
--->

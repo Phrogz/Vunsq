@@ -32,9 +32,10 @@ def json2bin(json)
 	require 'json'
 	preso = JSON.load(json)
 	bpm = (preso["bpm"] || 0).to_f
+	len = (preso["length"] || 60000).to_i
 	uri = (preso["media"] || "")
 
-	header = [bpm,uri.bytesize,uri].pack('eCa*')
+	header = [bpm,len,uri.bytesize,uri].pack('eVCa*')
 
 	timeline = (preso["timeline"]||[]).map.with_index do |evts,i|
 		[
