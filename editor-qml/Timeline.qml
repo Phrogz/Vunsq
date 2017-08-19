@@ -173,11 +173,44 @@ Item {
                             for (var i=strandData.length;i--;) activeRows[i] = active;
                         } else activeRows[overRow] = !activeRows[overRow];
                     break;
+
                     case Qt.Key_Minus: if (msPerPixel<256) msPerPixel *= 2; break;
                     case Qt.Key_Equal: if (msPerPixel>1)   msPerPixel /= 2; break;
+
+                    case Qt.Key_0:
+                    case Qt.Key_1:
+                    case Qt.Key_2:
+                    case Qt.Key_3:
+                    case Qt.Key_4:
+                    case Qt.Key_5:
+                    case Qt.Key_6:
+                    case Qt.Key_7:
+                    case Qt.Key_8:
+                    case Qt.Key_9:
+                        var effectId = event.key-48;
+                        for (var i=strandData.length;i--;) {
+                            if (activeRows[i]) addEffect(effectId, i, currentMS);
+                        }
+                        strandData = strandData;
+                    break;
+
+                    case Qt.Key_J:
+                        app.saveJSON();
+                    break;
                 }
             }
 
+            function addEffect(effectId, strandIndex, startTime) {
+                startTime = Math.round(startTime);
+                var strand = strandData[strandIndex];
+                var injected = false;
+                for (var i=0;i<strand.length;++i) {
+                    var evt = strand[i];
+                    if (evt.start===startTime) return evt.effect = effectId;
+                    else if (evt.start>startTime) return strand.splice(i,0,{effect:effectId, start:startTime});
+                }
+                strand.push({effect:effectId, start:startTime});
+            }
         }
 
         Rectangle {

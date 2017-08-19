@@ -6,6 +6,12 @@ Rectangle {
     width: 200
     color:'#FF333333'
 
+    property var effectsArray: []
+    onEffectsArrayChanged: {
+        effectNames.clear()
+        effectsArray.forEach(newEffect);
+    }
+
     Header {
         id: header
         name:'Effects'
@@ -23,28 +29,37 @@ Rectangle {
         orientation: Qt.Vertical
 
         ListView {
+            id: effectNameList
             height:parent.height/3
             Layout.minimumHeight: parent.height/3
             model: ListModel { id:effectNames }
             delegate: Rectangle {
-                color:'white'
+                color:index===effectNameList.currentIndex ? 'yellow' : 'white'
                 width:parent.width
                 height:20
                 Text { text: effectName; anchors{ fill:parent; margins:2 } }
-                MouseArea { anchors.fill: parent }
+                MouseArea {
+                    anchors.fill: parent;
+                    onClicked: {
+                        effectNameList.currentIndex = index;
+                        editor.loadFunction( effectsArray[index+1] );
+                    }
+                }
             }
         }
 
         CodeEditor {
-
+            id: editor
+            readOnly: effectNameList.currentIndex < 0
+            onTextChanged: effectsArray[ effectNameList.currentIndex+1 ].code = text;
         }
 
     }
 
 
-    function newEffect() {
+    function newEffect(a,b) {
         effectNames.append({effectName:'Effect #'+(effectNames.count+1), index:effectNames.count})
+        if (!a) effectsArray.push({index:effectNames.count+1, code:""});
     }
-
 }
 

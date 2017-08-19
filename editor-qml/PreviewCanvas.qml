@@ -4,6 +4,7 @@ Item {
     id: root
     property int strands: 24
     property int lightsPerStrand: 240
+    property bool initialized
 
     signal ready(var mainContext, var tmpContext)
     signal update
@@ -46,7 +47,10 @@ Item {
             }
 
             onPaint: {
-                if (available && tmpCanvas.available) ready( context, fauxContext(tmpCanvas));
+                if (available && tmpCanvas.available && !initialized) {
+                    ready(context, fauxContext(tmpCanvas));
+                    initialized = true;
+                }
                 root.update();
                 requestAnimationFrame(requestPaint);
             }
