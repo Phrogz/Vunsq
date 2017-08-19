@@ -8,5 +8,6 @@
         <file>Header.qml</file>
         <file>vunsq.js</file>
         <file>CodeEditor.qml</file>
+        <file alias="AndaleMono">Andale Mono.ttf</file>
     </qresource>
 </RCC>

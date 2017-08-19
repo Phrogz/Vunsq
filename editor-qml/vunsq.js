@@ -6,6 +6,15 @@ function Vunsq(mainContext, tmpContext) {
     this.displayOn(mainContext);
 }
 
+Vunsq.prototype.toJSON = function() {
+    return JSON.stringify({
+        bpm:this.bpm,
+        length:this.length,
+        media:this.media,
+        timeline:this.timeline
+    });
+};
+
 Vunsq.prototype.loadJSONFile = function(jsonFile) {
 	return this.loadJSON(require('fs').readFileSync(jsonFile));
 };
@@ -15,24 +24,30 @@ Vunsq.prototype.loadJSON = function(json) {
 };
 
 Vunsq.prototype.loadFromObject = function(object) {
-    ['bpm','length','media','patterns','timeline'].forEach(function(s){ if (object[s]) this[s]=object[s] }, this);
+    ['bpm','length','media','timeline'].forEach(function(s){ if (object[s]) this[s]=object[s] }, this);
     this.timeline.forEach(function(evts){ evts.forEach(setDefaults) });
 	return this;
 
 	function setDefaults(inst) {
 		if (!('pattern' in inst || 'effect' in inst)) inst.effect=0;
 		if (!('start'   in inst)) inst.start = 0;
-		if (!('length'  in inst)) inst.length = Number.MAX_SAFE_INTEGER;
-		if (!('repeat'  in inst)) inst.repeat = 0;
-		if (!('blend'   in inst)) inst.blend = 'source-over';
 		if (!('speed'   in inst)) inst.speed = 1;
-		if (!('x'       in inst)) inst.x = 0;
-		if (!('y'       in inst)) inst.y = 0;
 	}
 };
 
-Vunsq.prototype.effect = function(index,func) {
-	this.effects[index] = func;
+Vunsq.prototype.effect = function(funcData) {
+    funcData._code = funcData.code;
+    Object.defineProperty(funcData, 'code', {
+        get:function(){ return funcData._code },
+        set:function(newCode){
+            try {
+                funcData.ƒ = new Function('effectTime', 'strandIndex', 'strandLength', 'bpm', 'data', 'args', newCode);
+                funcData._code = newCode;
+            } catch(e) {}
+        }
+    });
+    funcData.code = funcData.code;
+    this.effects[funcData.index] = funcData;
 };
 
 Vunsq.prototype.loadBinaryFile = function(vunsqFile) {
@@ -116,14 +131,14 @@ Vunsq.prototype.update = function(t) {
         var nextEvent = strandEvents[this.nextEventIndex[strandIndex]];
         while (nextEvent && nextEvent.start<=t) nextEvent = strandEvents[++this.nextEventIndex[strandIndex]];
         var evt = strandEvents[this.nextEventIndex[strandIndex]-1];
-        if (evt && evt.effect && this.effects[evt.effect]) {
+        if (evt && evt.effect && this.effects[evt.effect] && this.effects[evt.effect].ƒ) {
             var effect = this.effects[evt.effect];
             var effectTime = (t-evt.start)*evt.speed;
 
             // Make all pixels transparent
             for (var y=this.h;y--;) data[y*4+3] = 0;
 
-            effect(effectTime, strandIndex, this.h, evt.args, data, this.bpm);
+            effect.ƒ(effectTime, strandIndex, this.h, this.bpm, data, evt.args);
 
             // Copy result from temporary context to correct row in main context
             this.tmpCtx.putImageData(this.tmpData,0,0);
