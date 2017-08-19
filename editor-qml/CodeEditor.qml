@@ -12,7 +12,7 @@ TextArea {
 
     Text {
         id: prefix
-        text:"function (effectTime, strandIndex, strandLength, bpm, data, args) {"
+        text:"function (effectTime, strandIndex, strandLength, bpm, rgba, args) {"
         opacity:0.5; height:20
         font { family:mono.name }
         anchors { top:parent.top }

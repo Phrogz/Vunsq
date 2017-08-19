@@ -241,14 +241,13 @@ Item {
                             for (var i=strandData.length;i--;) {
                                 preset[i] = activeRows[i] ? effectAt(strandIndex, startTime) : null;
                             }
-                            console.log('slurp!',JSON.stringify(preset))
                         } else {
                             for (var i=strandData.length;i--;) {
                                 if (preset[i]!=null) setEffect(preset[i], i, currentMS);
                             }
-                            console.log('splat!');
                         }
                     break;
+
                 }
             }
 

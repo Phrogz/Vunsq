@@ -6,13 +6,17 @@ function Vunsq(mainContext, tmpContext) {
     this.displayOn(mainContext);
 }
 
-Vunsq.prototype.toJSON = function() {
-    return JSON.stringify({
+Vunsq.prototype.toJSON = function(includeEffects) {
+    var object = {
         bpm:this.bpm,
         length:this.length,
         media:this.media,
         timeline:this.timeline
-    });
+    };
+    if (includeEffects) {
+        object.effects = this.effects.map(function(effectData){ return {index:effectData.index, name:effectData.name, code:effectData.code} })
+    }
+    return JSON.stringify(object);
 };
 
 Vunsq.prototype.loadJSONFile = function(jsonFile) {
@@ -25,6 +29,7 @@ Vunsq.prototype.loadJSON = function(json) {
 
 Vunsq.prototype.loadFromObject = function(object) {
     ['bpm','length','media','timeline'].forEach(function(s){ if (object[s]) this[s]=object[s] }, this);
+    if (!('length' in object)) this.length = 60000;
     this.timeline.forEach(function(evts){ evts.forEach(setDefaults) });
 	return this;
 
@@ -41,7 +46,7 @@ Vunsq.prototype.effect = function(funcData) {
         get:function(){ return funcData._code },
         set:function(newCode){
             try {
-                funcData.ƒ = new Function('effectTime', 'strandIndex', 'strandLength', 'bpm', 'data', 'args', newCode);
+                funcData.ƒ = new Function('effectTime', 'strandIndex', 'strandLength', 'bpm', 'rgba', 'args', newCode);
                 funcData._code = newCode;
             } catch(e) {}
         }
