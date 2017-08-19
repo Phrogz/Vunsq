@@ -8,6 +8,7 @@ Item {
     property int startMS: 0
     property real currentMS: 9000
     property var strandData: []
+    property var eventPainter: []
     property var activeRows: []
     property int overRow: -1
     property real endTime: 1000
@@ -168,7 +169,7 @@ Item {
             Keys.onPressed: {
                 switch(event.key) {
                     case Qt.Key_Space:
-                        if (event.modifiers & Qt.AltModifier) for (var i=strandData.length;i--;) activeRows[i] = !activeRows[i];
+                        if (event.modifiers & Qt.ControlModifier) for (var i=strandData.length;i--;) activeRows[i] = !activeRows[i];
                         else if (event.modifiers & Qt.ShiftModifier) {
                             var active = !activeRows[overRow];
                             for (var i=strandData.length;i--;) activeRows[i] = active;
@@ -188,9 +189,25 @@ Item {
                     case Qt.Key_7:
                     case Qt.Key_8:
                     case Qt.Key_9:
-                        var effectId = event.key-48;
-                        for (var i=strandData.length;i--;) {
-                            if (activeRows[i]) addEffect(effectId, i, currentMS);
+                        var keyNum = event.key-48;
+                        if (event.modifiers & Qt.ControlModifier) {
+                            var preset = eventPainter[keyNum];
+                            if (!preset) preset=eventPainter[keyNum]=[];
+                            for (var i=strandData.length;i--;) {
+                                preset[i] = activeRows[i] ? effectAt(i, currentMS) : null;
+                            }
+                            console.log('slurp!',JSON.stringify(preset))
+                        } else if (event.modifiers & Qt.AltModifier) {
+                            var preset = eventPainter[keyNum];
+                            if (!preset) preset=eventPainter[keyNum]=[];
+                            for (var i=strandData.length;i--;) {
+                                if (preset[i]!=null) setEffect(preset[i], i, currentMS);
+                            }
+                            console.log('splat!');
+                        } else {
+                            for (var i=strandData.length;i--;) {
+                                if (activeRows[i]) setEffect(keyNum, i, currentMS);
+                            }
                         }
                         strandData = strandData;
                     break;
@@ -206,10 +223,44 @@ Item {
                     case Qt.Key_J:
                         app.saveJSON();
                     break;
+
+                    case Qt.Key_F1:
+                    case Qt.Key_F2:
+                    case Qt.Key_F3:
+                    case Qt.Key_F4:
+                    case Qt.Key_F5:
+                    case Qt.Key_F6:
+                    case Qt.Key_F7:
+                    case Qt.Key_F8:
+                    case Qt.Key_F9:
+                        var presetNum = event.key - 16777263;
+                        var preset = eventPainter[presetNum];
+                        if (!preset) preset=eventPainter[presetNum]=[];
+                        console.log(presetNum,JSON.stringify(preset))
+                        if (event.modifers & Qt.ShiftModifier & Qt.ControlModifier) {
+                            for (var i=strandData.length;i--;) {
+                                preset[i] = activeRows[i] ? effectAt(strandIndex, startTime) : null;
+                            }
+                            console.log('slurp!',JSON.stringify(preset))
+                        } else {
+                            for (var i=strandData.length;i--;) {
+                                if (preset[i]!=null) setEffect(preset[i], i, currentMS);
+                            }
+                            console.log('splat!');
+                        }
+                    break;
                 }
             }
 
-            function addEffect(effectId, strandIndex, startTime) {
+            function effectAt(strandIndex, intersectingTime) {
+                var strand = strandData[strandIndex];
+                for (var i=0;i<strand.length;++i) {
+                    var e1=strand[i], e2=strand[i+1];
+                    if (e1.start<=intersectingTime && (!e2 || e2.start>intersectingTime)) return e1.effect;
+                }
+            }
+
+            function setEffect(effectId, strandIndex, startTime) {
                 startTime = Math.round(startTime);
                 var strand = strandData[strandIndex];
                 var injected = false;
