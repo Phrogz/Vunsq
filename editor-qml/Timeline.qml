@@ -168,7 +168,8 @@ Item {
             Keys.onPressed: {
                 switch(event.key) {
                     case Qt.Key_Space:
-                        if (event.modifiers & Qt.AltModifier) {
+                        if (event.modifiers & Qt.AltModifier) for (var i=strandData.length;i--;) activeRows[i] = !activeRows[i];
+                        else if (event.modifiers & Qt.ShiftModifier) {
                             var active = !activeRows[overRow];
                             for (var i=strandData.length;i--;) activeRows[i] = active;
                         } else activeRows[overRow] = !activeRows[overRow];
@@ -194,6 +195,14 @@ Item {
                         strandData = strandData;
                     break;
 
+                    case Qt.Key_Delete:
+                    case Qt.Key_Backspace:
+                        for (var i=strandData.length;i--;) {
+                            if (activeRows[i]) deleteEffectAt(i, currentMS);
+                        }
+                        strandData = strandData;
+                    break;
+
                     case Qt.Key_J:
                         app.saveJSON();
                     break;
@@ -210,6 +219,14 @@ Item {
                     else if (evt.start>startTime) return strand.splice(i,0,{effect:effectId, start:startTime});
                 }
                 strand.push({effect:effectId, start:startTime});
+            }
+
+            function deleteEffectAt(strandIndex, startTime) {
+                var strand = strandData[strandIndex];
+                for (var i=1;i<strand.length-1;++i) {
+                    var e1=strand[i], e2=strand[i+1];
+                    if (e1.start<=startTime && e2.start>startTime) return strand.splice(i,1);
+                }
             }
         }
 
