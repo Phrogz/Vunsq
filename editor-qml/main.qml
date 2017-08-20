@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.0
 import QtQuick.Dialogs 1.1
 import "vunsq.js" as V
 
-Window {
+ApplicationWindow {
     id: app
     visible: true
     width: 1280
@@ -14,8 +14,36 @@ Window {
     color: 'gray'
 
     property var vid
+    property string currentFile
 
-   SplitView {
+    menuBar: MenuBar {
+        Menu {
+            title: qsTr("File")
+            MenuItem {
+                text: qsTr("&Open…")
+                shortcut: StandardKey.Open
+                onTriggered: openDialog.open()
+            }
+            MenuItem {
+                text: qsTr("&Save")
+                shortcut: StandardKey.Save
+                onTriggered: saveJSON()
+            }
+            MenuItem {
+                text: qsTr("Save &As…")
+                shortcut: StandardKey.SaveAs
+                onTriggered: saveDialog.open()
+            }
+            MenuSeparator { }
+            MenuItem {
+                text: qsTr("Exit")
+                shortcut: StandardKey.Quit
+                onTriggered: Qt.quit();
+            }
+        }
+    }
+
+    SplitView {
        anchors.fill: parent
        orientation: Qt.Vertical
 
@@ -61,18 +89,23 @@ Window {
        Timeline { id:timeline; Layout.minimumHeight: 200 }
     }
 
-    function loadFileFromJSON( json ) {
+    function loadFromJSON(json) {
         var obj = JSON.parse(json);
         vid.loadFromObject(obj);
-        if (obj.effects) obj.effects.forEach(function(effectData){ vid.effect(effectData) });
+        if (obj.effects) obj.effects.forEach(function(effectData){ if(effectData) vid.effect(effectData) });
         timeline.strandData = vid.timeline;
         timeline.endTime    = vid.length;
         editor.effectsArray = vid.effects;
     }
 
-    function saveJSON(){
+    function saveJSON(fileURI) {
+        if (fileURI) currentFile = fileURI;
+        if (!currentFile) return saveDialog.open();
         var json = vid.toJSON(true);
-        console.log("\n"+json);
+        var xhr = new XMLHttpRequest();
+        xhr.open("PUT", currentFile, false);
+        xhr.send(json);
+        console.log("Saved to",currentFile);
     }
 
     FileDialog {
@@ -84,11 +117,7 @@ Window {
             var xhr = new XMLHttpRequest;
             xhr.open("GET", fileUrl);
             xhr.onreadystatechange = function() {
-                console.log('readystatechange', xhr.readyState, XMLHttpRequest.DONE);
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    console.log('json',xhr.responseText);
-                    loadFileFromJSON(xhr.responseText);
-                }
+                if (xhr.readyState === XMLHttpRequest.DONE) loadFromJSON(xhr.responseText);
             };
             xhr.send();
         }
@@ -98,15 +127,6 @@ Window {
         id: saveDialog
         title: "Save Sequence As"
         selectExisting: false
-        onAccepted: console.log("\n"+vid.toJSON(true));
-    }
-
-    Shortcut {
-        sequence: StandardKey.Open
-        onActivated: openDialog.open()
-    }
-    Shortcut {
-        sequence: StandardKey.Save
-        onActivated: saveDialog.open()
+        onAccepted: saveJSON(fileUrl)
     }
 }
