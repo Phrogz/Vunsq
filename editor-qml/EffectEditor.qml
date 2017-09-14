@@ -34,16 +34,28 @@ Rectangle {
             Layout.minimumHeight: parent.height/3
             model: ListModel { id:effectNames }
             delegate: Rectangle {
-                color:index===effectNameList.currentIndex ? 'yellow' : 'white'
+                color:index===effectNameList.currentIndex ? Qt.hsva(60/360,0.5,1) : 'white'
                 width:parent.width
                 height:20
-                Text { text: effectName; anchors{ fill:parent; margins:2 } }
                 MouseArea {
                     anchors.fill: parent;
                     onClicked: {
                         effectNameList.currentIndex = index;
                         editor.loadFunction( effectsArray[index+1] );
                     }
+                }
+                Rectangle {
+                    id:effectColor
+                    color:colorsByEffect[index]
+                    height:parent.height*0.8; width:height
+                    anchors { verticalCenter:parent.verticalCenter; left:parent.left; leftMargin:parent.height-height }
+                    border { color:'#cc000000' }
+                }
+                Text {
+                    text:effectName
+                    height:parent.height
+                    verticalAlignment: Text.AlignVCenter
+                    anchors{ left:effectColor.right; leftMargin:effectColor.anchors.leftMargin }
                 }
             }
         }

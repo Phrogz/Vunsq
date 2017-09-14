@@ -17,10 +17,6 @@ Item {
     property real pxPerBeat: 60 * pxPerSecond / bpm
     property real msPerBeat: 1000 * 60 / bpm
 
-    property var colorsByEffect: ['#FFb3aaf2', '#FFb2ff80', '#FFe5bf73', '#FFc5e6a1', '#FFfff780', '#FF6cc3d9',
-                                  '#FFe6a1a1', '#FFf27999', '#FF7466cc', '#FFcca78f', '#FF79f2aa', '#FF669ccc',
-                                  '#FF99ffdd', '#FFf29979', '#FFcc7abc', '#FFcf73e6']
-
     onMsPerPixelChanged: ruler.requestPaint();
     onStartMSChanged: ruler.requestPaint();
 
@@ -266,7 +262,7 @@ Item {
                 for (var i=0;i<strand.length;++i) {
                     var evt = strand[i];
                     if (evt.start===startTime) return evt.effect = effectId;
-                    else if (evt.start>startTime) return strand.splice(i,0,{effect:effectId, start:startTime});
+                    else if (evt.start>startTime) return strand.splice(i,0,{effect:effectId, start:startTime, speed:1});
                 }
                 strand.push({effect:effectId, start:startTime});
             }

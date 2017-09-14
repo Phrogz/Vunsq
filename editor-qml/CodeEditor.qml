@@ -7,6 +7,7 @@ TextArea {
     function loadFunction(funcData) {
         editor.text = funcData.code;
     }
+    tabChangesFocus: false
     textMargin:20
     FontLoader { id:mono; source:'AndaleMono' }
 
@@ -15,7 +16,7 @@ TextArea {
         text:"function (effectTime, strandIndex, strandLength, bpm, rgba, args) {"
         opacity:0.5; height:20
         font { family:mono.name }
-        anchors { top:parent.top }
+        anchors { top:parent.top; left:parent.left; leftMargin:4 }
     }
 
     Text {
@@ -23,7 +24,15 @@ TextArea {
         text:"}"
         opacity:0.5; height:20
         font { family:mono.name }
-        anchors { bottom:parent.bottom }
+        anchors { bottom:parent.bottom; left:parent.left; leftMargin:4 }
+    }
+
+    // Workaround QTBUG-39102
+    Keys.onPressed: {
+        if (Qt.Key_Tab === event.key) {
+            insert(cursorPosition, "\t");
+            event.accepted = true;
+        }
     }
 }
 

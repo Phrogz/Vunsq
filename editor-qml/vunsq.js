@@ -48,7 +48,9 @@ Vunsq.prototype.effect = function(funcData) {
             try {
                 funcData.ƒ = new Function('effectTime', 'strandIndex', 'strandLength', 'bpm', 'rgba', 'args', newCode);
                 funcData._code = newCode;
-            } catch(e) {}
+            } catch(e) {
+                console.log("Error compiling function:",e);
+            }
         }
     });
     funcData.code = funcData.code;
@@ -126,6 +128,9 @@ Vunsq.prototype.displayOn = function(context) {
 
 // Draw according to a particular time
 Vunsq.prototype.update = function(t) {
+    if (t===this.lastTime) return;
+
+    var updateStart = new Date;
     this.ctx.fillRect(0,0,this.w,this.h);
     var data = this.tmpData.data;
 
@@ -138,7 +143,7 @@ Vunsq.prototype.update = function(t) {
         var evt = strandEvents[this.nextEventIndex[strandIndex]-1];
         if (evt && evt.effect && this.effects[evt.effect] && this.effects[evt.effect].ƒ) {
             var effect = this.effects[evt.effect];
-            var effectTime = (t-evt.start)*evt.speed;
+            var effectTime = (t-(evt.start||0))*(evt.speed||1);
 
             // Make all pixels transparent
             for (var y=this.h;y--;) data[y*4+3] = 0;
@@ -152,6 +157,8 @@ Vunsq.prototype.update = function(t) {
     }.bind(this));
 
     this.lastTime = t;
+    var updateFinish = new Date;
+//    console.debug('Update time: '+(updateFinish-updateStart)+'ms');
 	return this;
 };
 
